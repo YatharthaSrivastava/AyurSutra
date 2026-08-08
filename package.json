@@ -1,0 +1,11 @@
+{
+  "name": "ayursutra",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix web-app run dev",
+    "build": "npm --prefix web-app run build",
+    "preview": "npm --prefix web-app run preview",
+    "start": "npm --prefix web-app run preview"
+  }
+}

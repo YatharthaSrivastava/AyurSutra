@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ayur-primary: #1b4332;
+  --color-ayur-primary-light: #2d6a4f;
+  --color-ayur-accent: #d4a373;
+  --color-ayur-cream: #faf6f1;
+  --color-dosha-vata: #2d6a4f;
+  --color-dosha-pitta: #e11d48;
+  --color-dosha-kapha: #16a34a;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Noto Serif", Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background: #faf6f1;
+  color: #1b4332;
+}
+
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Card and Panel Utility Styles with Enhanced Box Shadows */
+.ayur-card {
+  background: #ffffff;
+  border: 1px solid rgba(27, 67, 50, 0.14);
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px -2px rgba(27, 67, 50, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ayur-card:hover {
+  border-color: #2d6a4f;
+  box-shadow: 0 14px 30px -4px rgba(27, 67, 50, 0.16), 0 6px 12px -2px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid rgba(27, 67, 50, 0.15);
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px -2px rgba(27, 67, 50, 0.08);
+}
+
+.sanitation-striped {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(212, 163, 115, 0.25),
+    rgba(212, 163, 115, 0.25) 10px,
+    rgba(212, 163, 115, 0.1) 10px,
+    rgba(212, 163, 115, 0.1) 20px
+  );
+  border: 1px dashed #d4a373;
+}

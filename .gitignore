@@ -1,0 +1,27 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Secrets & Keys
+*.pem
+*.key
+firebase-service-account.json
+
+# Dependencies
+node_modules/
+venv/
+.venv/
+
+# Build Outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Python Cache
+__pycache__/
+*.py[cod]
+
+# OS Files
+.DS_Store
+Thumbs.db
