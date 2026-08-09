@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    mongodb_uri: str = "mongodb+srv://2k25cse2510966_db_user:B0dwbpNrAPrNHsj6@cluster0.cjtmixl.mongodb.net/"
+    mongodb_uri: str 
     mongodb_db: str = "ayursutra"
     firebase_project_id: str = ""
     firebase_credentials_path: str = ""
