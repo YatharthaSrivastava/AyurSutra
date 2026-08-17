@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix web-app run dev",
-    "build": "npm --prefix web-app run build",
+    "build": "npm --prefix web-app run build && node -e \"fs.cpSync('web-app/dist', 'dist', {recursive: true})\"",
     "preview": "npm --prefix web-app run preview",
     "start": "npm --prefix web-app run preview"
   }

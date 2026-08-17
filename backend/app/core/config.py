@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     firebase_project_id: str = ""
     firebase_credentials_path: str = ""
     fle_encryption_key: str = "dev-only-key-change-in-production"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,https://ayursutra-gilt.vercel.app,*"
     dev_mode: bool = True
 
     @property
