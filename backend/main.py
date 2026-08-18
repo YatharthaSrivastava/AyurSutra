@@ -1,11 +1,10 @@
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import close_db, init_db
-from app.routes import auth, health, patients, prakriti
+from app.routes import auth, health, patients, prakriti, schedules, billing
 
 
 @asynccontextmanager
@@ -16,9 +15,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="AyurSutra API",
-    description="Panchakarma hospital management platform",
-    version="1.0.0",
+    title="AyurSutra Clinical OS API",
+    description="Panchakarma hospital management platform with MongoDB persistence and DISHA compliance",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -34,3 +33,5 @@ app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(patients.router, prefix="/api/v1")
 app.include_router(prakriti.router, prefix="/api/v1")
+app.include_router(schedules.router, prefix="/api/v1")
+app.include_router(billing.router, prefix="/api/v1")

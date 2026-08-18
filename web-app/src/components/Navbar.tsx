@@ -1,11 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS } from "@/lib/types";
+import { FloatingChatbot } from "@/components/FloatingChatbot";
 import {
   Calendar,
   Activity,
   UserCheck,
-  Bot,
   FileText,
   HeartPulse,
   Sparkles,
@@ -36,7 +36,6 @@ export function Navbar() {
     { path: "/therapist/vitals", label: "Therapist Vitals", icon: HeartPulse, roles: ["THERAPIST", "VAIDYA"] },
     { path: "/therapist/workload", label: "Workload", icon: Activity, roles: ["ADMIN", "VAIDYA", "THERAPIST"] },
     { path: "/notifications", label: "Alerts", icon: MessageSquare, roles: ["ADMIN", "VAIDYA", "PATIENT"] },
-    { path: "/patient/ai-assistant", label: "AI Care Bot", icon: Bot, roles: ["PATIENT", "VAIDYA", "ADMIN", "THERAPIST"] },
     { path: "/billing", label: "Billing", icon: FileText, roles: ["ADMIN", "VAIDYA", "PATIENT"] },
     { path: "/admin/master", label: "Master", icon: Sliders, roles: ["ADMIN"] },
     { path: "/admin/audit-logs", label: "Audit Logs", icon: ShieldCheck, roles: ["ADMIN", "VAIDYA"] },
@@ -46,7 +45,8 @@ export function Navbar() {
   const filteredLinks = navLinks.filter((link) => link.roles.includes(session.role));
 
   return (
-    <header className="sticky top-0 z-50 bg-[#1b4332] text-white shadow-lg">
+    <>
+      <header className="sticky top-0 z-50 bg-[#1b4332] text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
@@ -55,11 +55,11 @@ export function Navbar() {
               आ
             </div>
             <div>
-              <span className="text-lg font-bold font-serif text-white tracking-tight">
+              <span className="text-xl font-bold font-serif text-white tracking-tight leading-none block">
                 AyurSutra
               </span>
-              <span className="block text-[9px] tracking-widest text-[#d4a373] uppercase -mt-1 font-sans">
-                आयुसूत्र Panchakarma
+              <span className="block text-[10px] tracking-widest text-[#d4a373] uppercase font-bold font-sans mt-0.5">
+                आयुसूत्र PANCHAKARMA
               </span>
             </div>
           </Link>
@@ -132,5 +132,7 @@ export function Navbar() {
         </div>
       </div>
     </header>
+    <FloatingChatbot />
+    </>
   );
 }

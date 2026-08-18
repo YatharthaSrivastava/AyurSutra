@@ -142,43 +142,44 @@ export default function DashboardPage() {
         {/* ========================================================================= */}
         {/* 1. TOP FULL-WIDTH HERO SECTION (Book Appointment Box)                    */}
         {/* ========================================================================= */}
-        <div className="ayur-card p-8 sm:p-10 rounded-3xl bg-white shadow-xl relative overflow-hidden border border-gray-200/80">
-          {/* Background Blended Herbal Image */}
-          <div className="absolute inset-0 z-0 opacity-25 pointer-events-none">
+        <div className="ayur-card p-8 sm:p-10 rounded-3xl bg-white/90 shadow-xl relative overflow-hidden border-2 border-[#1b4332]/15">
+          {/* Background High-Res AyurSutra Branding Image with clear visibility */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
             <img
-              src="/assets/images/hero_banner.jpg"
-              alt="Ayurvedic Background"
-              className="w-full h-full object-cover"
+              src="/assets/images/ayursutra_branding_hero.jpg"
+              alt="Ayurvedic Panchakarma Background"
+              className="w-full h-full object-cover object-center scale-105 opacity-85"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent"></div>
+            {/* Horizontal gradient allowing right side to be crystal clear while preserving text contrast on the left */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#faf6f1]/95 via-[#faf6f1]/65 to-transparent"></div>
           </div>
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Main Text Content */}
             <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#d4a373]/20 border border-[#d4a373]/50 text-[#1b4332] text-xs font-bold tracking-widest uppercase">
-                <Sparkles className="w-3.5 h-3.5 text-[#d4a373]" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#faedcd]/80 border border-[#d4a373] text-[#78350f] text-xs font-bold tracking-widest uppercase shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-[#b45309]" />
                 <span>AYURVEDA × DIGITAL TECHNOLOGY</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl font-bold font-serif text-[#1b4332] leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-serif font-black text-[#1b4332] leading-tight">
                 Smarter healthcare, <br />
-                <span className="italic font-normal text-[#2d6a4f]">rooted in Ayurveda.</span>
+                <span className="italic font-serif font-normal text-[#1b4332]">rooted in Ayurveda.</span>
               </h1>
 
-              <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-2xl font-medium">
-                Logged in as <strong className="text-[#1b4332]">{session.fullName}</strong> ({ROLE_LABELS[session.role]}). A digital platform for Panchakarma management, connected patient care, zero-conflict therapy scheduling, and 24/7 AI-guided recovery.
+              <p className="text-[#143628] text-sm sm:text-base leading-relaxed max-w-2xl font-semibold">
+                Logged in as <strong className="text-[#1b4332] font-black">{session.fullName}</strong> ({ROLE_LABELS[session.role]}). A digital platform for Panchakarma management, connected patient care, zero-conflict therapy scheduling, and 24/7 AI-guided recovery.
               </p>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   to="/schedule"
-                  className="px-6 py-3 rounded-xl bg-[#1b4332] hover:bg-[#2d6a4f] text-white text-xs font-bold shadow-xl transition-all flex items-center gap-2 group"
+                  className="px-6 py-3.5 rounded-xl bg-[#1b4332] hover:bg-[#2d6a4f] text-white text-xs font-bold shadow-xl transition-all flex items-center gap-2 group border-2 border-[#1b4332]"
                 >
                   <Calendar className="w-4 h-4 text-[#d4a373]" />
                   <span>Book Appointment</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#d4a373] group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <button
@@ -186,7 +187,7 @@ export default function DashboardPage() {
                     const el = document.getElementById("homepage-slideshow");
                     el?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-5 py-3 rounded-xl border border-gray-300 hover:border-[#1b4332] text-gray-800 text-xs font-bold bg-white/90 shadow-sm transition-all flex items-center gap-2"
+                  className="px-5 py-3.5 rounded-xl border-2 border-[#1b4332]/20 hover:border-[#1b4332] text-gray-800 text-xs font-bold bg-white/90 shadow-sm transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Leaf className="w-4 h-4 text-[#1b4332]" />
                   <span>Explore Therapies</span>
@@ -194,38 +195,38 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right Pillar Badges */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-3">
-              <div className="bg-[#faf6f1]/90 p-4 rounded-2xl border border-gray-200/80 text-center space-y-1 shadow-sm">
-                <div className="w-9 h-9 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow">
-                  <Leaf className="w-4 h-4" />
+            {/* Right Pillar Badges with crisp box outlines */}
+            <div className="lg:col-span-4 grid grid-cols-2 gap-3.5">
+              <div className="bg-white/90 backdrop-blur-md p-4.5 rounded-2xl border-2 border-[#1b4332]/15 text-center space-y-1.5 shadow-sm hover:border-[#1b4332] transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow-xs">
+                  <Leaf className="w-4.5 h-4.5" />
                 </div>
-                <h4 className="text-xs font-bold text-[#1b4332]">Detoxify Body</h4>
-                <p className="text-[10px] text-gray-500">Purge toxins (Ama)</p>
+                <h4 className="text-xs font-serif font-bold text-[#1b4332]">Detoxify Body</h4>
+                <p className="text-[10px] text-gray-600 font-medium">Purge toxins (Ama)</p>
               </div>
 
-              <div className="bg-[#faf6f1]/90 p-4 rounded-2xl border border-gray-200/80 text-center space-y-1 shadow-sm">
-                <div className="w-9 h-9 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow">
-                  <Flame className="w-4 h-4" />
+              <div className="bg-white/90 backdrop-blur-md p-4.5 rounded-2xl border-2 border-[#1b4332]/15 text-center space-y-1.5 shadow-sm hover:border-[#1b4332] transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow-xs">
+                  <Flame className="w-4.5 h-4.5" />
                 </div>
-                <h4 className="text-xs font-bold text-[#1b4332]">Balance Doshas</h4>
-                <p className="text-[10px] text-gray-500">Vata - Pitta - Kapha</p>
+                <h4 className="text-xs font-serif font-bold text-[#1b4332]">Balance Doshas</h4>
+                <p className="text-[10px] text-gray-600 font-medium">Vata - Pitta - Kapha</p>
               </div>
 
-              <div className="bg-[#faf6f1]/90 p-4 rounded-2xl border border-gray-200/80 text-center space-y-1 shadow-sm">
-                <div className="w-9 h-9 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow">
-                  <Sparkles className="w-4 h-4" />
+              <div className="bg-white/90 backdrop-blur-md p-4.5 rounded-2xl border-2 border-[#1b4332]/15 text-center space-y-1.5 shadow-sm hover:border-[#1b4332] transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow-xs">
+                  <Sparkles className="w-4.5 h-4.5" />
                 </div>
-                <h4 className="text-xs font-bold text-[#1b4332]">Rejuvenate Mind</h4>
-                <p className="text-[10px] text-gray-500">Restore Manas peace</p>
+                <h4 className="text-xs font-serif font-bold text-[#1b4332]">Rejuvenate Mind</h4>
+                <p className="text-[10px] text-gray-600 font-medium">Restore Manas peace</p>
               </div>
 
-              <div className="bg-[#faf6f1]/90 p-4 rounded-2xl border border-gray-200/80 text-center space-y-1 shadow-sm">
-                <div className="w-9 h-9 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow">
-                  <Heart className="w-4 h-4" />
+              <div className="bg-white/90 backdrop-blur-md p-4.5 rounded-2xl border-2 border-[#1b4332]/15 text-center space-y-1.5 shadow-sm hover:border-[#1b4332] transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[#1b4332] text-[#d4a373] flex items-center justify-center mx-auto font-bold shadow-xs">
+                  <Heart className="w-4.5 h-4.5" />
                 </div>
-                <h4 className="text-xs font-bold text-[#1b4332]">Nurture Soul</h4>
-                <p className="text-[10px] text-gray-500">Holistic well-being</p>
+                <h4 className="text-xs font-serif font-bold text-[#1b4332]">Nurture Soul</h4>
+                <p className="text-[10px] text-gray-600 font-medium">Holistic well-being</p>
               </div>
             </div>
           </div>
