@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm --prefix web-app install && npm --prefix web-app run build",
+    "build": "npm --prefix web-app install && npm --prefix web-app run build && node -e \"require('fs').cpSync('web-app/dist', 'dist', {recursive: true})\"",
     "dev": "npm --prefix web-app run dev",
     "start": "npm --prefix web-app run preview"
   },
