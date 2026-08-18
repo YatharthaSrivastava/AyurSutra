@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { useAuth } from "@/context/AuthContext";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -88,310 +89,185 @@ export default function SchedulePage() {
   const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
 
-  // Initial Mock Appointments adhering to classical clinical protocols
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: "APT-101",
-      patientName: session?.fullName || "Aarav Sharma",
-      patientGender: "MALE",
-      patientAge: 38,
-      doshaPrakriti: "VATA",
-      contactPhone: session?.phone || "+91 98765 43210",
-      therapyName: "Abhyanga & Swedana (Purvakarma)",
-      roomName: "Suite 1 - Snehana Droni",
-      droniId: "DRONI-01 (Teakwood)",
-      therapistName: "Ramesh Kumar (Sr. Lead Therapist)",
-      therapistGender: "MALE",
-      startTime: "09:00",
-      durationMins: 60,
-      sanitationMins: 15,
-      status: "COMPLETED",
-      notes: "Classical Dashamoola decoction with Sesame Dhanwantharam taila.",
-    },
-    {
-      id: "APT-102",
-      patientName: "Priya Patel",
-      patientGender: "FEMALE",
-      patientAge: 42,
-      doshaPrakriti: "PITTA",
-      contactPhone: "+91 98234 56789",
-      therapyName: "Shirodhara (Taila Dhara)",
-      roomName: "Suite 2 - Shirodhara Droni",
-      droniId: "DRONI-02 (Bronze Basin)",
-      therapistName: "Sunita Verma (Sr. Lead Therapist)",
-      therapistGender: "FEMALE",
-      startTime: "10:30",
-      durationMins: 45,
-      sanitationMins: 15,
-      status: "IN_PROGRESS",
-      notes: "Ksheerabala 101 taila, continuous oscillation for insomnia relief.",
-    },
-    {
-      id: "APT-103",
-      patientName: "Vikram Malhotra",
-      patientGender: "MALE",
-      patientAge: 51,
-      doshaPrakriti: "VATA_PITTA",
-      contactPhone: "+91 97112 34567",
-      therapyName: "Kashaya Basti (Pradhanakarma)",
-      roomName: "Suite 3 - Basti Karma Unit",
-      droniId: "DRONI-03 (Basti Recliner)",
-      therapistName: "Anil Joshi (Male Therapist)",
-      therapistGender: "MALE",
-      startTime: "11:45",
-      durationMins: 45,
-      sanitationMins: 15,
-      status: "SCHEDULED",
-      notes: "Niruha Basti preparation: Honey, rock salt, Sneha, kalka, kwatha.",
-    },
-    {
-      id: "APT-104",
-      patientName: "Ananya Roy",
-      patientGender: "FEMALE",
-      patientAge: 29,
-      doshaPrakriti: "KAPHA",
-      contactPhone: "+91 99887 76655",
-      therapyName: "Nasya Karma & Mukha Abhyanga",
-      roomName: "Suite 1 - Snehana Droni",
-      droniId: "DRONI-01 (Teakwood)",
-      therapistName: "Meera Nair (Female Therapist)",
-      therapistGender: "FEMALE",
-      startTime: "14:00",
-      durationMins: 30,
-      sanitationMins: 15,
-      status: "SCHEDULED",
-      notes: "Shadbindu taila administration for chronic sinusitis.",
-    },
-    {
-      id: "APT-105",
-      patientName: "Suresh Gupta",
-      patientGender: "MALE",
-      patientAge: 55,
-      doshaPrakriti: "TRIDOSHIC",
-      contactPhone: "+91 98450 11223",
-      therapyName: "Vamana Karma (Emesis Protocol)",
-      roomName: "Suite 4 - Panchakarma VIP Room",
-      droniId: "DRONI-04 (VIP Herbal)",
-      therapistName: "Ramesh Kumar (Sr. Lead Therapist)",
-      therapistGender: "MALE",
-      startTime: "08:00",
-      durationMins: 90,
-      sanitationMins: 20,
-      status: "COMPLETED",
-      notes: "Madanaphala yoga administered under Chief Vaidya supervision.",
-    },
-  ]);
+  // User-driven appointments list
+  const [appointments, setAppointments] = useState<Appointment[]>(() => {
+    const saved = localStorage.getItem("ayursutra_schedules");
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return [
+      {
+        id: "APT-101",
+        patientName: session?.fullName || "Aarav Sharma",
+        patientGender: "MALE",
+        patientAge: 38,
+        doshaPrakriti: "VATA",
+        contactPhone: session?.phone || "+91 98765 43210",
+        therapyName: "Abhyanga & Swedana (Purvakarma)",
+        roomName: "Suite 1 - Snehana Droni",
+        droniId: "DRONI-01 (Teakwood)",
+        therapistName: "Ramesh Kumar (Sr. Lead Therapist)",
+        therapistGender: "MALE",
+        startTime: "09:00",
+        durationMins: 60,
+        sanitationMins: 15,
+        status: "COMPLETED",
+        notes: "Classical Dashamoola decoction with Sesame Dhanwantharam taila.",
+      },
+      {
+        id: "APT-102",
+        patientName: "Priya Patel",
+        patientGender: "FEMALE",
+        patientAge: 42,
+        doshaPrakriti: "PITTA",
+        contactPhone: "+91 98234 56789",
+        therapyName: "Shirodhara (Taila Dhara)",
+        roomName: "Suite 2 - Shirodhara Droni",
+        droniId: "DRONI-02 (Bronze Basin)",
+        therapistName: "Sunita Verma (Sr. Lead Therapist)",
+        therapistGender: "FEMALE",
+        startTime: "10:30",
+        durationMins: 45,
+        sanitationMins: 15,
+        status: "IN_PROGRESS",
+        notes: "Ksheerabala 101 taila, continuous oscillation for insomnia relief.",
+      },
+    ];
+  });
 
-  // Booking Form State
-  const [formPatientName, setFormPatientName] = useState("");
-  const [formPatientGender, setFormPatientGender] = useState<"MALE" | "FEMALE">("FEMALE");
-  const [formPatientAge, setFormPatientAge] = useState<number>(35);
-  const [formDosha, setFormDosha] = useState<"VATA" | "PITTA" | "KAPHA" | "VATA_PITTA" | "TRIDOSHIC">("VATA");
-  const [formContactPhone, setFormContactPhone] = useState("+91 98765 43210");
-  const [formTherapy, setFormTherapy] = useState("Shirodhara (Taila Dhara)");
-  const [formRoom, setFormRoom] = useState("Suite 2 - Shirodhara Droni");
-  const [formTherapist, setFormTherapist] = useState("Sunita Verma (Sr. Lead Therapist)");
-  const [formTherapistGender, setFormTherapistGender] = useState<"MALE" | "FEMALE">("FEMALE");
-  const [formStartTime, setFormStartTime] = useState("11:00");
-  const [formDuration, setFormDuration] = useState(45);
-  const [formSanitation, setFormSanitation] = useState(15);
-  const [formNotes, setFormNotes] = useState("");
-  const [overrideChiefVaidya, setOverrideChiefVaidya] = useState(false);
-  const [bookingError, setBookingError] = useState<string | null>(null);
+  useEffect(() => {
+    localStorage.setItem("ayursutra_schedules", JSON.stringify(appointments));
+  }, [appointments]);
 
-  // URL Query Sync (e.g. from homepage redirect)
+  // Form Fields in Booking Modal
+  const [modalPatientName, setModalPatientName] = useState<string>(() => session?.fullName || "Aarav Sharma");
+  const [modalPatientGender, setModalPatientGender] = useState<"MALE" | "FEMALE">("MALE");
+  const [modalPatientAge, setModalPatientAge] = useState<number>(35);
+  const [modalPatientPhone, setModalPatientPhone] = useState<string>(() => session?.phone || "+91 98765 43210");
+  const [modalTherapy, setModalTherapy] = useState<string>("Shirodhara (Taila Dhara)");
+  const [modalRoom, setModalRoom] = useState<string>("Suite 2 - Shirodhara Droni");
+  const [modalTherapist, setModalTherapist] = useState<string>("Sunita Verma (Sr. Lead Therapist)");
+  const [modalTime, setModalTime] = useState<string>("09:00");
+  const [modalDuration, setModalDuration] = useState<number>(45);
+  const [modalSanitation, setModalSanitation] = useState<number>(15);
+  const [modalOverride, setModalOverride] = useState<boolean>(false);
+  const [modalNotes, setModalNotes] = useState<string>("");
+  const [conflictError, setConflictError] = useState<string | null>(null);
+
+  // Check URL query param to pre-select therapy if passed
   useEffect(() => {
     const therapyParam = searchParams.get("therapy");
     if (therapyParam && THERAPIES_PRESETS[therapyParam]) {
-      setFormTherapy(therapyParam);
+      setModalTherapy(therapyParam);
       const preset = THERAPIES_PRESETS[therapyParam];
-      setFormDuration(preset.duration);
-      setFormSanitation(preset.sanitation);
-      setFormRoom(preset.recommendedSuite);
+      setModalRoom(preset.recommendedSuite);
+      setModalDuration(preset.duration);
+      setModalSanitation(preset.sanitation);
       setShowBookingModal(true);
     }
   }, [searchParams]);
 
-  // When therapy selection changes in form, auto-sync defaults
-  const handleTherapyChange = (therapyName: string) => {
-    setFormTherapy(therapyName);
-    const preset = THERAPIES_PRESETS[therapyName];
-    if (preset) {
-      setFormDuration(preset.duration);
-      setFormSanitation(preset.sanitation);
-      setFormRoom(preset.recommendedSuite);
+  // Handle Preset Changes
+  const handleTherapyChange = (therapy: string) => {
+    setModalTherapy(therapy);
+    if (THERAPIES_PRESETS[therapy]) {
+      const preset = THERAPIES_PRESETS[therapy];
+      setModalRoom(preset.recommendedSuite);
+      setModalDuration(preset.duration);
+      setModalSanitation(preset.sanitation);
     }
   };
 
-  // When patient gender changes, auto-select a gender-matched therapist
-  const handlePatientGenderChange = (gender: "MALE" | "FEMALE") => {
-    setFormPatientGender(gender);
-    setFormTherapistGender(gender);
-    const matched = THERAPISTS.find((t) => t.gender === gender);
-    if (matched) {
-      setFormTherapist(matched.name);
-    }
-  };
-
-  // Open modal for a fresh slot or editing
-  const openNewBookingModal = (defaultTime?: string, defaultRoom?: string) => {
+  // Open modal for click-to-book on empty grid slot
+  const handleSlotClick = (roomName: string, time: string) => {
     setEditingAppointment(null);
-    setBookingError(null);
-    setFormPatientName("");
-    setFormPatientGender("FEMALE");
-    setFormTherapistGender("FEMALE");
-    setFormTherapist("Sunita Verma (Sr. Lead Therapist)");
-    setFormTherapy("Shirodhara (Taila Dhara)");
-    setFormDuration(45);
-    setFormSanitation(15);
-    setFormRoom(defaultRoom || "Suite 2 - Shirodhara Droni");
-    setFormStartTime(defaultTime || "10:00");
-    setFormNotes("");
-    setOverrideChiefVaidya(false);
+    setConflictError(null);
+    setModalRoom(roomName);
+    setModalTime(time);
+    setModalPatientName(session?.fullName || "Aarav Sharma");
+    setModalPatientPhone(session?.phone || "+91 98765 43210");
     setShowBookingModal(true);
   };
 
-  const openEditBookingModal = (apt: Appointment) => {
-    setEditingAppointment(apt);
-    setBookingError(null);
-    setFormPatientName(apt.patientName);
-    setFormPatientGender(apt.patientGender);
-    setFormPatientAge(apt.patientAge || 35);
-    setFormDosha(apt.doshaPrakriti || "VATA");
-    setFormContactPhone(apt.contactPhone || "");
-    setFormTherapy(apt.therapyName);
-    setFormRoom(apt.roomName);
-    setFormTherapist(apt.therapistName);
-    setFormTherapistGender(apt.therapistGender);
-    setFormStartTime(apt.startTime);
-    setFormDuration(apt.durationMins);
-    setFormSanitation(apt.sanitationMins);
-    setFormNotes(apt.notes || "");
-    setOverrideChiefVaidya(!!apt.chiefVaidyaOverride);
-    setShowBookingModal(true);
-  };
-
-  // Conflict Checking Engine
-  const checkConflicts = (startTime: string, duration: number, sanitation: number, room: string, therapist: string, excludeId?: string) => {
-    const [startH, startM] = startTime.split(":").map(Number);
-    const newStartMinutes = startH * 60 + startM;
-    const newEndMinutes = newStartMinutes + duration + sanitation;
-
-    for (const apt of appointments) {
-      if (excludeId && apt.id === excludeId) continue;
-      if (apt.status === "CANCELLED") continue;
-
-      const [aptH, aptM] = apt.startTime.split(":").map(Number);
-      const aptStartMinutes = aptH * 60 + aptM;
-      const aptEndMinutes = aptStartMinutes + apt.durationMins + apt.sanitationMins;
-
-      // Overlap condition
-      const hasOverlap = Math.max(newStartMinutes, aptStartMinutes) < Math.min(newEndMinutes, aptEndMinutes);
-
-      if (hasOverlap) {
-        if (apt.roomName === room) {
-          return `Suite Conflict: "${room}" is already reserved by ${apt.patientName} (${apt.startTime} - ${Math.floor(aptEndMinutes/60)}:${String(aptEndMinutes%60).padStart(2, "0")}, including 15m T_s buffer).`;
-        }
-        if (apt.therapistName === therapist) {
-          return `Therapist Conflict: ${therapist} is assigned to another patient at this time.`;
-        }
-      }
-    }
-    return null;
-  };
-
-  // Handle Save Appointment
+  // Save or Update Appointment
   const handleSaveAppointment = (e: React.FormEvent) => {
     e.preventDefault();
-    setBookingError(null);
+    setConflictError(null);
 
-    // 1. Gender Matching Validation Rule
-    if (formPatientGender !== formTherapistGender && !overrideChiefVaidya) {
-      setBookingError(
-        "Gender Guardrail Violation: Classical Shastra mandates gender-matched therapists (Male-Male, Female-Female). Enable Chief Vaidya Override to proceed."
+    // Selected therapist object
+    const thObj = THERAPISTS.find((t) => t.name === modalTherapist) || THERAPISTS[0];
+
+    // Gender Guardrail Warning check
+    if (modalPatientGender !== thObj.gender && !modalOverride) {
+      setConflictError(
+        `Gender Protocol Guardrail: Patient is ${modalPatientGender} but therapist is ${thObj.gender}. Please match therapist gender or enable Chief Vaidya Override.`
       );
       return;
     }
 
-    // 2. Conflict Engine Check
-    const conflict = checkConflicts(
-      formStartTime,
-      formDuration,
-      formSanitation,
-      formRoom,
-      formTherapist,
-      editingAppointment ? editingAppointment.id : undefined
-    );
-
-    if (conflict && !overrideChiefVaidya) {
-      setBookingError(`${conflict} Please adjust time, select another suite, or apply Chief Vaidya Override.`);
-      return;
-    }
-
-    const matchedPreset = THERAPIES_PRESETS[formTherapy];
-    const droni = matchedPreset ? matchedPreset.droni : "DRONI-01 (Standard)";
-
     if (editingAppointment) {
       // Update existing
-      setAppointments(
-        appointments.map((a) =>
-          a.id === editingAppointment.id
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === editingAppointment.id
             ? {
-                ...a,
-                patientName: formPatientName.trim() || "Patient",
-                patientGender: formPatientGender,
-                patientAge: formPatientAge,
-                doshaPrakriti: formDosha,
-                contactPhone: formContactPhone,
-                therapyName: formTherapy,
-                roomName: formRoom,
-                droniId: droni,
-                therapistName: formTherapist,
-                therapistGender: formTherapistGender,
-                startTime: formStartTime,
-                durationMins: formDuration,
-                sanitationMins: formSanitation,
-                notes: formNotes,
-                chiefVaidyaOverride: overrideChiefVaidya,
+                ...apt,
+                patientName: modalPatientName,
+                patientGender: modalPatientGender,
+                patientAge: modalPatientAge,
+                contactPhone: modalPatientPhone,
+                therapyName: modalTherapy,
+                roomName: modalRoom,
+                droniId: THERAPIES_PRESETS[modalTherapy]?.droni || "DRONI-01",
+                therapistName: modalTherapist,
+                therapistGender: thObj.gender,
+                startTime: modalTime,
+                durationMins: Number(modalDuration),
+                sanitationMins: Number(modalSanitation),
+                chiefVaidyaOverride: modalOverride,
+                notes: modalNotes,
               }
-            : a
+            : apt
         )
       );
     } else {
       // Create new
       const newApt: Appointment = {
-        id: `APT-${101 + appointments.length}`,
-        patientName: formPatientName.trim() || "New Patient",
-        patientGender: formPatientGender,
-        patientAge: formPatientAge,
-        doshaPrakriti: formDosha,
-        contactPhone: formContactPhone,
-        therapyName: formTherapy,
-        roomName: formRoom,
-        droniId: droni,
-        therapistName: formTherapist,
-        therapistGender: formTherapistGender,
-        startTime: formStartTime,
-        durationMins: formDuration,
-        sanitationMins: formSanitation,
+        id: `APT-${Date.now().toString().slice(-4)}`,
+        patientName: modalPatientName,
+        patientGender: modalPatientGender,
+        patientAge: modalPatientAge,
+        contactPhone: modalPatientPhone,
+        therapyName: modalTherapy,
+        roomName: modalRoom,
+        droniId: THERAPIES_PRESETS[modalTherapy]?.droni || "DRONI-01",
+        therapistName: modalTherapist,
+        therapistGender: thObj.gender,
+        startTime: modalTime,
+        durationMins: Number(modalDuration),
+        sanitationMins: Number(modalSanitation),
         status: "SCHEDULED",
-        chiefVaidyaOverride: overrideChiefVaidya,
-        notes: formNotes,
+        chiefVaidyaOverride: modalOverride,
+        notes: modalNotes,
       };
-      setAppointments([...appointments, newApt]);
+      setAppointments((prev) => [...prev, newApt]);
     }
 
     setShowBookingModal(false);
+    setEditingAppointment(null);
   };
 
   // Status transitions
-  const updateAppointmentStatus = (id: string, newStatus: Appointment["status"]) => {
-    setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
+  const handleUpdateStatus = (id: string, newStatus: Appointment["status"]) => {
+    setAppointments((prev) =>
+      prev.map((apt) => (apt.id === id ? { ...apt, status: newStatus } : apt))
+    );
   };
 
-  const deleteAppointment = (id: string) => {
-    if (confirm("Are you sure you want to remove this scheduled Panchakarma session?")) {
-      setAppointments(appointments.filter((a) => a.id !== id));
+  // Delete appointment
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to cancel and remove this scheduled session?")) {
+      setAppointments((prev) => prev.filter((apt) => apt.id !== id));
     }
   };
 
@@ -409,235 +285,115 @@ export default function SchedulePage() {
     });
   }, [appointments, selectedRoom, statusFilter, searchQuery]);
 
-  // Statistics counters
-  const stats = useMemo(() => {
-    const total = appointments.length;
-    const inProgress = appointments.filter((a) => a.status === "IN_PROGRESS").length;
-    const completed = appointments.filter((a) => a.status === "COMPLETED").length;
-    const scheduled = appointments.filter((a) => a.status === "SCHEDULED").length;
-    const rate = Math.round(((completed + inProgress) / (total || 1)) * 100);
-    return { total, inProgress, completed, scheduled, rate };
-  }, [appointments]);
-
-  // Quick Date Pill Selector Generator
-  const datePills = useMemo(() => {
-    const list = [];
-    const base = new Date();
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(base);
-      d.setDate(base.getDate() + i);
-      const iso = d.toISOString().split("T")[0];
-      const label =
-        i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-      list.push({ iso, label });
-    }
-    return list;
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#faf6f1] text-[#1b4332] flex flex-col font-sans selection:bg-[#d4a373]/30">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* ========================================================================= */}
-        {/* TOP HEADER & ACTION BAR                                                   */}
+        {/* TOP HEADER & CONTROL ACTIONS                                              */}
         {/* ========================================================================= */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-6 rounded-3xl border-2 border-[#1b4332]/15 shadow-sm">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-black tracking-widest text-[#b45309] uppercase">
               <Sparkles className="w-4 h-4 text-[#d4a373]" />
-              <span>AyurSutra Clinical OS • Multi-Resource Scheduler</span>
+              <span>AyurSutra Panchakarma OS • Multi-Resource Scheduler</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-black text-[#1b4332] tracking-tight">
-              Panchakarma Treatment & Droni Scheduler
+              Zero-Conflict Clinical Therapy Scheduler
             </h1>
             <p className="text-xs text-gray-600 font-medium">
-              Zero-conflict engine enforcing 15-min sanitation buffers (T_s), Droni allocation, and gender guardrails.
+              Synchronized scheduling for Dronis, Suites, and Gender-Matched Therapists with +15m Sanitation Buffers.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Date Navigator */}
-            <div className="flex items-center gap-1.5 bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-white border border-gray-300 rounded-xl px-3 py-1.5 text-xs font-bold text-[#1b4332] focus:outline-none shadow-xs"
-              />
-            </div>
-
-            {/* Quick View Mode Switcher */}
-            <div className="flex items-center p-1 bg-gray-100 rounded-2xl border border-gray-200">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* View Mode Toggle */}
+            <div className="flex items-center p-1 bg-[#faf6f1] rounded-2xl border border-[#1b4332]/20">
               <button
                 type="button"
                 onClick={() => setViewMode("TIMELINE")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === "TIMELINE"
-                    ? "bg-[#1b4332] text-white shadow-xs"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === "TIMELINE" ? "bg-[#1b4332] text-white shadow-xs" : "text-gray-600 hover:text-[#1b4332]"
                 }`}
-                title="Gantt Timeline Grid"
               >
-                Timeline
+                Timeline Grid
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("CARDS")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === "CARDS"
-                    ? "bg-[#1b4332] text-white shadow-xs"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === "CARDS" ? "bg-[#1b4332] text-white shadow-xs" : "text-gray-600 hover:text-[#1b4332]"
                 }`}
-                title="List Cards View"
               >
-                Cards
+                Cards View
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("KANBAN")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === "KANBAN"
-                    ? "bg-[#1b4332] text-white shadow-xs"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === "KANBAN" ? "bg-[#1b4332] text-white shadow-xs" : "text-gray-600 hover:text-[#1b4332]"
                 }`}
-                title="Status Kanban Board"
               >
-                Board
+                Kanban Flow
               </button>
             </div>
 
-            {/* Book Session Button */}
+            {/* Book Button */}
             <button
               type="button"
-              onClick={() => openNewBookingModal()}
+              onClick={() => {
+                setEditingAppointment(null);
+                setConflictError(null);
+                setModalPatientName(session?.fullName || "Aarav Sharma");
+                setModalPatientPhone(session?.phone || "+91 98765 43210");
+                setShowBookingModal(true);
+              }}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#1b4332] hover:bg-[#2d6a4f] text-white text-xs font-black uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-[#1b4332]"
             >
               <Plus className="w-4 h-4 text-[#d4a373]" />
-              <span>Book Therapy Session</span>
+              <span>Book New Session</span>
             </button>
           </div>
         </div>
 
-        {/* Quick Date Chips Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide shrink-0 mr-1">
-            Quick Date:
-          </span>
-          {datePills.map((dp) => (
-            <button
-              key={dp.iso}
-              type="button"
-              onClick={() => setSelectedDate(dp.iso)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border-2 ${
-                selectedDate === dp.iso
-                  ? "bg-[#1b4332] text-white border-[#1b4332] shadow-sm scale-105"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
-              }`}
+        {/* ========================================================================= */}
+        {/* FILTER & DATE CONTROLS BAR                                                */}
+        {/* ========================================================================= */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-white p-4 rounded-2xl border-2 border-[#1b4332]/15 shadow-xs items-center">
+          {/* Date Picker */}
+          <div className="md:col-span-3 flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-[#b45309] shrink-0" />
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full text-xs font-bold px-3 py-2 rounded-xl border border-gray-200 focus:border-[#1b4332] focus:outline-none bg-[#faf6f1]"
+            />
+          </div>
+
+          {/* Suite Filter */}
+          <div className="md:col-span-3">
+            <select
+              value={selectedRoom}
+              onChange={(e) => setSelectedRoom(e.target.value)}
+              className="w-full text-xs font-bold px-3 py-2 rounded-xl border border-gray-200 focus:border-[#1b4332] focus:outline-none bg-white"
             >
-              {dp.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ========================================================================= */}
-        {/* KPI COUNTERS & CLINICAL GUARDRAILS METRICS                                */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white p-4.5 rounded-2xl border-2 border-[#1b4332]/15 shadow-xs flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold text-lg border border-emerald-200 shadow-inner">
-              {stats.total}
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase">Total Sessions</p>
-              <p className="text-sm font-serif font-black text-[#1b4332]">Scheduled Today</p>
-            </div>
+              <option value="ALL">All Suites & Dronis (4 Suites)</option>
+              {ROOMS_LIST.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} - {r.type}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="bg-white p-4.5 rounded-2xl border-2 border-amber-500/20 shadow-xs flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-lg border border-amber-200 animate-pulse shadow-inner">
-              {stats.inProgress}
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-amber-700 uppercase flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                In Droni Therapy
-              </p>
-              <p className="text-sm font-serif font-black text-[#1b4332]">Active Now</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-4.5 rounded-2xl border-2 border-[#1b4332]/15 shadow-xs flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-800 flex items-center justify-center font-bold text-lg border border-blue-200 shadow-inner">
-              {stats.completed}
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase">Completed</p>
-              <p className="text-sm font-serif font-black text-[#1b4332]">Shodhana Done</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-4.5 rounded-2xl border-2 border-[#1b4332]/15 shadow-xs flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-[#faf6f1] text-[#1b4332] flex items-center justify-center font-bold text-lg border border-[#1b4332]/20 shadow-inner">
-              {stats.rate}%
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase">Droni Utilization</p>
-              <p className="text-sm font-serif font-black text-[#1b4332]">Efficiency Rate</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* FILTERS & SEARCH BAR                                                      */}
-        {/* ========================================================================= */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border-2 border-[#1b4332]/15 shadow-xs">
-          {/* Suite Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            <button
-              type="button"
-              onClick={() => setSelectedRoom("ALL")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border-2 ${
-                selectedRoom === "ALL"
-                  ? "bg-[#1b4332] text-white border-[#1b4332]"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
-              }`}
-            >
-              All Suites (4)
-            </button>
-            {ROOMS_LIST.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => setSelectedRoom(r.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border-2 ${
-                  selectedRoom === r.id
-                    ? "bg-[#1b4332] text-white border-[#1b4332]"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
-                }`}
-              >
-                {r.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Search and Status Dropdown */}
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search patient, therapy..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-gray-200 focus:border-[#1b4332] focus:outline-none w-44 sm:w-56 font-medium"
-              />
-            </div>
-
+          {/* Status Filter */}
+          <div className="md:col-span-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs py-1.5 px-3 rounded-xl border border-gray-200 font-bold text-gray-700 focus:outline-none"
+              className="w-full text-xs font-bold px-3 py-2 rounded-xl border border-gray-200 focus:border-[#1b4332] focus:outline-none bg-white"
             >
               <option value="ALL">All Statuses</option>
               <option value="SCHEDULED">Scheduled</option>
@@ -645,387 +401,265 @@ export default function SchedulePage() {
               <option value="COMPLETED">Completed</option>
             </select>
           </div>
+
+          {/* Search Bar */}
+          <div className="md:col-span-4 relative">
+            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search patient, therapy, therapist..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-gray-200 focus:border-[#1b4332] focus:outline-none bg-white font-medium"
+            />
+          </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* VIEW 1: TIMELINE MATRIX (Gantt Schedule Grid)                             */}
+        {/* VIEW 1: TIMELINE GRID VIEW                                                */}
         {/* ========================================================================= */}
         {viewMode === "TIMELINE" && (
-          <div className="bg-white rounded-3xl border-2 border-[#1b4332]/15 shadow-sm p-4 sm:p-6 overflow-x-auto">
-            <div className="min-w-[760px] space-y-3">
-              {/* Header Suites Columns */}
-              <div className="grid grid-cols-5 gap-3 pb-3 border-b-2 border-gray-100 text-xs font-bold">
-                <div className="text-gray-400 uppercase tracking-wider pl-2">Time Slot</div>
-                {ROOMS_LIST.map((room) => (
-                  <div key={room.id} className="space-y-0.5">
-                    <p className="text-[#1b4332] font-serif font-black text-sm">{room.name}</p>
-                    <p className="text-[10px] text-gray-500 font-medium line-clamp-1">{room.type}</p>
-                  </div>
-                ))}
+          <div className="bg-white rounded-3xl border-2 border-[#1b4332]/15 shadow-sm overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#b45309]" />
+                <h3 className="font-serif font-bold text-base text-[#1b4332]">
+                  Daily Suite & Droni Occupancy Matrix
+                </h3>
               </div>
+              <span className="text-[11px] text-gray-500 font-medium">
+                Click any empty slot to instant-book.
+              </span>
+            </div>
 
-              {/* Time Slots Rows */}
-              {TIME_SLOTS.map((time) => {
-                const hourNum = parseInt(time.split(":")[0]);
-                return (
-                  <div key={time} className="grid grid-cols-5 gap-3 items-stretch min-h-[72px] py-1 border-b border-gray-100/70">
-                    {/* Time Label Column */}
-                    <div className="flex items-center text-xs font-mono font-bold text-gray-500 pl-2">
-                      <Clock className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                      <span>{time}</span>
-                    </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b-2 border-gray-200 text-gray-500 uppercase text-[10px] font-bold">
+                    <th className="py-3 px-4 w-44">Treatment Suite</th>
+                    {TIME_SLOTS.map((time) => (
+                      <th key={time} className="py-3 px-2 text-center font-mono w-24">
+                        {time}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {ROOMS_LIST.map((room) => (
+                    <tr key={room.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="py-4 px-4 font-bold text-[#1b4332] bg-[#faf6f1]/60">
+                        <div className="text-xs font-serif font-bold">{room.name}</div>
+                        <div className="text-[10px] text-gray-500 font-normal">{room.type}</div>
+                        <div className="text-[9px] text-[#b45309] font-mono mt-0.5">{room.droni}</div>
+                      </td>
 
-                    {/* Suite Slots */}
-                    {ROOMS_LIST.map((room) => {
-                      // Find appointment starting in this hour slot
-                      const apt = filteredAppointments.find(
-                        (a) => a.roomName === room.id && parseInt(a.startTime.split(":")[0]) === hourNum
-                      );
+                      {TIME_SLOTS.map((time) => {
+                        const slotApt = filteredAppointments.find(
+                          (apt) => apt.roomName === room.id && apt.startTime === time
+                        );
 
-                      if (apt) {
-                        return (
-                          <div
-                            key={room.id}
-                            className={`p-3 rounded-2xl border-2 transition-all flex flex-col justify-between shadow-xs ${
-                              apt.status === "COMPLETED"
-                                ? "bg-emerald-50/80 border-emerald-300"
-                                : apt.status === "IN_PROGRESS"
-                                ? "bg-amber-50/90 border-amber-400 ring-2 ring-amber-300 animate-pulse"
-                                : "bg-[#faf6f1] border-[#1b4332]/20 hover:border-[#1b4332]"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-1">
-                              <div>
-                                <span className="text-[10px] font-black text-[#b45309] uppercase block">
-                                  {apt.startTime} ({apt.durationMins}m)
-                                </span>
-                                <p className="text-xs font-bold text-[#1b4332] line-clamp-1">
-                                  {apt.patientName}
-                                </p>
-                              </div>
-                              <span
-                                className={`text-[9px] px-1.5 py-0.5 rounded font-black ${
-                                  apt.status === "COMPLETED"
-                                    ? "bg-emerald-200 text-emerald-900"
-                                    : apt.status === "IN_PROGRESS"
-                                    ? "bg-amber-200 text-amber-900"
-                                    : "bg-emerald-100 text-emerald-800"
+                        if (slotApt) {
+                          const isCompleted = slotApt.status === "COMPLETED";
+                          const isInProgress = slotApt.status === "IN_PROGRESS";
+
+                          return (
+                            <td key={time} className="p-1.5 align-top">
+                              <div
+                                onClick={() => {
+                                  setEditingAppointment(slotApt);
+                                  setModalPatientName(slotApt.patientName);
+                                  setModalPatientGender(slotApt.patientGender);
+                                  setModalTherapy(slotApt.therapyName);
+                                  setModalRoom(slotApt.roomName);
+                                  setModalTherapist(slotApt.therapistName);
+                                  setModalTime(slotApt.startTime);
+                                  setModalDuration(slotApt.durationMins);
+                                  setModalSanitation(slotApt.sanitationMins);
+                                  setModalNotes(slotApt.notes || "");
+                                  setShowBookingModal(true);
+                                }}
+                                className={`p-2 rounded-xl border text-[11px] space-y-1 cursor-pointer transition-all hover:scale-102 shadow-xs ${
+                                  isCompleted
+                                    ? "bg-emerald-50 border-emerald-300 text-emerald-950"
+                                    : isInProgress
+                                    ? "bg-amber-50 border-amber-300 text-amber-950 ring-2 ring-amber-200 animate-pulse"
+                                    : "bg-[#1b4332]/10 border-[#1b4332]/30 text-[#1b4332]"
                                 }`}
                               >
-                                {apt.status === "IN_PROGRESS" ? "ACTIVE" : apt.status}
-                              </span>
-                            </div>
-
-                            <p className="text-[10px] text-gray-600 line-clamp-1 font-medium mt-1">
-                              {apt.therapyName}
-                            </p>
-
-                            {/* Quick Action Pills */}
-                            <div className="flex items-center justify-between gap-1 pt-2 mt-1 border-t border-black/5">
-                              <span className="text-[9px] text-gray-500 font-semibold truncate">
-                                👨‍⚕️ {apt.therapistName.split(" ")[0]}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                {apt.status === "SCHEDULED" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => updateAppointmentStatus(apt.id, "IN_PROGRESS")}
-                                    className="p-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white text-[9px] font-bold cursor-pointer"
-                                    title="Start Therapy"
-                                  >
-                                    <Play className="w-2.5 h-2.5" />
-                                  </button>
-                                )}
-                                {apt.status === "IN_PROGRESS" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => updateAppointmentStatus(apt.id, "COMPLETED")}
-                                    className="p-1 rounded bg-blue-700 hover:bg-blue-800 text-white text-[9px] font-bold cursor-pointer"
-                                    title="Complete Session"
-                                  >
-                                    <Check className="w-2.5 h-2.5" />
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => openEditBookingModal(apt)}
-                                  className="p-1 rounded hover:bg-gray-200 text-gray-700 text-[9px] cursor-pointer"
-                                  title="Edit / Reschedule"
-                                >
-                                  <Edit3 className="w-2.5 h-2.5" />
-                                </button>
+                                <p className="font-bold truncate">{slotApt.patientName}</p>
+                                <p className="text-[10px] truncate text-gray-600">{slotApt.therapyName.split(" (")[0]}</p>
+                                <div className="flex items-center justify-between text-[9px] text-gray-500 pt-1 border-t border-black/10">
+                                  <span>{slotApt.durationMins}m</span>
+                                  <span className="font-bold uppercase text-[8px]">{slotApt.status}</span>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        );
-                      }
+                            </td>
+                          );
+                        }
 
-                      // Empty Slot - Click to reserve
-                      return (
-                        <button
-                          key={room.id}
-                          type="button"
-                          onClick={() => openNewBookingModal(time, room.id)}
-                          className="h-full min-h-[58px] rounded-2xl border border-dashed border-gray-200 hover:border-[#1b4332] hover:bg-[#faf6f1]/60 transition-all flex items-center justify-center text-gray-300 hover:text-[#1b4332] group cursor-pointer"
-                          title={`Click to book ${room.name} at ${time}`}
-                        >
-                          <span className="text-[11px] font-bold opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-                            <Plus className="w-3.5 h-3.5" /> Book {time}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+                        return (
+                          <td key={time} className="p-1.5 align-middle text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleSlotClick(room.id, time)}
+                              className="w-full h-14 rounded-xl border border-dashed border-gray-300 hover:border-[#1b4332] hover:bg-[#faf6f1] text-gray-400 hover:text-[#1b4332] text-[10px] flex items-center justify-center transition-all cursor-pointer font-bold"
+                            >
+                              + Book
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* VIEW 2: CARDS DETAILED LIST VIEW                                          */}
+        {/* VIEW 2: DETAILED CARDS VIEW                                               */}
         {/* ========================================================================= */}
         {viewMode === "CARDS" && (
-          <div className="space-y-4">
-            {filteredAppointments.length === 0 ? (
-              <div className="bg-white p-12 rounded-3xl border-2 border-[#1b4332]/15 text-center text-gray-500 shadow-sm">
-                <CalendarDays className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm font-semibold">No appointments found matching the criteria.</p>
-                <button
-                  type="button"
-                  onClick={() => openNewBookingModal()}
-                  className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1b4332] text-white text-xs font-bold"
-                >
-                  <Plus className="w-3.5 h-3.5 text-[#d4a373]" /> Book First Session
-                </button>
-              </div>
-            ) : (
-              filteredAppointments.map((apt) => {
-                const genderMatch = apt.patientGender === apt.therapistGender;
-                return (
-                  <div
-                    key={apt.id}
-                    className="bg-white p-6 rounded-3xl border-2 border-[#1b4332]/15 shadow-sm hover:border-[#1b4332]/40 transition-all space-y-4"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-[#1b4332] text-[#d4a373] flex flex-col items-center justify-center font-bold text-xs shadow-md">
-                          <span className="text-white text-sm font-mono font-black">{apt.startTime}</span>
-                          <span className="text-[10px] text-[#d4a373] font-semibold">{apt.durationMins}m</span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-serif font-bold text-lg text-[#1b4332]">
-                              {apt.therapyName}
-                            </h3>
-                            <span
-                              className={`text-[10px] px-2.5 py-0.5 rounded-full font-black border uppercase tracking-wider ${
-                                apt.status === "COMPLETED"
-                                  ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                                  : apt.status === "IN_PROGRESS"
-                                  ? "bg-amber-50 text-amber-800 border-amber-300 animate-pulse"
-                                  : "bg-[#faf6f1] text-[#1b4332] border-[#1b4332]/20"
-                              }`}
-                            >
-                              {apt.status === "IN_PROGRESS" ? "Therapy In Progress" : apt.status}
-                            </span>
-                          </div>
-
-                          <p className="text-xs text-gray-600 mt-1 flex items-center gap-3 flex-wrap font-medium">
-                            <span>Patient: <strong className="text-[#1b4332] font-bold">{apt.patientName}</strong> ({apt.patientGender}, {apt.patientAge || 35}y)</span>
-                            <span>•</span>
-                            <span>{apt.roomName}</span>
-                            <span>•</span>
-                            <span>Prakriti: <strong className="text-[#b45309]">{apt.doshaPrakriti || "VATA"}</strong></span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Gender Guardrail Tag */}
-                      <div className="flex items-center gap-2">
-                        {genderMatch ? (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            Gender Guard Matched
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 text-xs font-bold">
-                            <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-                            Chief Vaidya Override
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Details Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-[#faf6f1] rounded-2xl border border-[#1b4332]/10 text-xs">
-                      <div>
-                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Assigned Therapist</span>
-                        <p className="font-bold text-[#1b4332] mt-0.5">{apt.therapistName}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Droni Allocation</span>
-                        <p className="font-bold text-[#1b4332] mt-0.5">{apt.droniId}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Clinical Notes</span>
-                        <p className="font-medium text-gray-700 mt-0.5 line-clamp-1">{apt.notes || "Standard Shastra formulation protocol"}</p>
-                      </div>
-                    </div>
-
-                    {/* Visual 15m Buffer & Action Bar */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                      <div className="w-full sm:w-1/2 flex items-center gap-2 text-[11px]">
-                        <div className="flex-1 h-3 rounded-full bg-gray-200 overflow-hidden flex border border-gray-300">
-                          <div className="h-full bg-[#1b4332]" style={{ width: "75%" }} title="Therapy Session"></div>
-                          <div className="h-full bg-[#d4a373]" style={{ width: "25%" }} title="15-min Sanitation Buffer"></div>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold text-[#1b4332] whitespace-nowrap">
-                          +15m T_s Sanitation Locked
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 self-end">
-                        {apt.status === "SCHEDULED" && (
-                          <button
-                            type="button"
-                            onClick={() => updateAppointmentStatus(apt.id, "IN_PROGRESS")}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold cursor-pointer"
-                          >
-                            <Play className="w-3.5 h-3.5" /> Start Therapy
-                          </button>
-                        )}
-
-                        {apt.status === "IN_PROGRESS" && (
-                          <button
-                            type="button"
-                            onClick={() => updateAppointmentStatus(apt.id, "COMPLETED")}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold cursor-pointer"
-                          >
-                            <Check className="w-3.5 h-3.5" /> Mark Completed
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => openEditBookingModal(apt)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold cursor-pointer"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" /> Reschedule
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => deleteAppointment(apt.id)}
-                          className="p-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs cursor-pointer"
-                          title="Cancel / Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredAppointments.map((apt) => (
+              <div
+                key={apt.id}
+                className="bg-white p-5 rounded-3xl border-2 border-[#1b4332]/15 shadow-xs hover:border-[#1b4332]/40 transition-all space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-2.5">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-gray-400 block">{apt.id}</span>
+                    <h4 className="font-serif font-bold text-base text-[#1b4332]">{apt.patientName}</h4>
+                    <p className="text-[11px] text-gray-500 font-medium">{apt.patientGender} • {apt.contactPhone}</p>
                   </div>
-                );
-              })
-            )}
+
+                  <span
+                    className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border ${
+                      apt.status === "COMPLETED"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                        : apt.status === "IN_PROGRESS"
+                        ? "bg-amber-50 text-amber-800 border-amber-300 animate-pulse"
+                        : "bg-gray-100 text-gray-700 border-gray-300"
+                    }`}
+                  >
+                    {apt.status}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-gray-700">
+                  <p className="font-bold text-[#1b4332]">{apt.therapyName}</p>
+                  <p className="text-[11px] text-gray-600">🏛️ {apt.roomName} ({apt.droniId})</p>
+                  <p className="text-[11px] text-gray-600">👤 Therapist: {apt.therapistName}</p>
+                  <p className="text-[11px] font-mono font-bold text-[#b45309]">
+                    ⏰ {apt.startTime} ({apt.durationMins}m therapy + {apt.sanitationMins}m buffer)
+                  </p>
+                  {apt.notes && <p className="text-[10px] text-gray-500 italic bg-[#faf6f1] p-2 rounded-lg">"{apt.notes}"</p>}
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    {apt.status !== "IN_PROGRESS" && apt.status !== "COMPLETED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateStatus(apt.id, "IN_PROGRESS")}
+                        className="p-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-600 cursor-pointer"
+                        title="Start Session"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {apt.status !== "COMPLETED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateStatus(apt.id, "COMPLETED")}
+                        className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer"
+                        title="Complete Session"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(apt.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg cursor-pointer"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* VIEW 3: KANBAN STATUS BOARD                                               */}
+        {/* VIEW 3: KANBAN FLOW VIEW                                                  */}
         {/* ========================================================================= */}
         {viewMode === "KANBAN" && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Scheduled Column */}
-            <div className="bg-gray-100/80 p-4 rounded-3xl border-2 border-gray-200 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-300">
-                <span className="font-serif font-black text-sm text-[#1b4332]">Scheduled ({appointments.filter(a => a.status === "SCHEDULED").length})</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-[#1b4332]"></span>
-              </div>
-              <div className="space-y-3">
-                {appointments.filter(a => a.status === "SCHEDULED").map(apt => (
-                  <div key={apt.id} className="bg-white p-4 rounded-2xl border-2 border-[#1b4332]/10 shadow-xs space-y-2">
-                    <div className="flex justify-between items-start">
-                      <span className="text-[10px] font-mono font-bold text-[#b45309]">{apt.startTime}</span>
-                      <span className="text-[10px] font-bold text-gray-500">{apt.roomName.split(" - ")[0]}</span>
-                    </div>
-                    <p className="text-xs font-bold text-[#1b4332]">{apt.patientName}</p>
-                    <p className="text-[11px] text-gray-600">{apt.therapyName}</p>
-                    <button
-                      type="button"
-                      onClick={() => updateAppointmentStatus(apt.id, "IN_PROGRESS")}
-                      className="w-full mt-2 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <Play className="w-3 h-3" /> Start
-                    </button>
+            {(["SCHEDULED", "IN_PROGRESS", "COMPLETED"] as const).map((statusKey) => {
+              const columnApts = filteredAppointments.filter((a) => a.status === statusKey);
+              return (
+                <div key={statusKey} className="bg-white p-5 rounded-3xl border-2 border-[#1b4332]/15 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h4 className="font-serif font-bold text-sm text-[#1b4332] uppercase tracking-wide">
+                      {statusKey} ({columnApts.length})
+                    </h4>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* In Progress Column */}
-            <div className="bg-amber-50/70 p-4 rounded-3xl border-2 border-amber-200 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-amber-300">
-                <span className="font-serif font-black text-sm text-amber-900">In Droni Therapy ({appointments.filter(a => a.status === "IN_PROGRESS").length})</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-              </div>
-              <div className="space-y-3">
-                {appointments.filter(a => a.status === "IN_PROGRESS").map(apt => (
-                  <div key={apt.id} className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-xs space-y-2 ring-1 ring-amber-300">
-                    <div className="flex justify-between items-start">
-                      <span className="text-[10px] font-mono font-black text-amber-700">ACTIVE: {apt.startTime}</span>
-                      <span className="text-[10px] font-bold text-amber-800">{apt.roomName.split(" - ")[0]}</span>
-                    </div>
-                    <p className="text-xs font-bold text-[#1b4332]">{apt.patientName}</p>
-                    <p className="text-[11px] text-gray-600">{apt.therapyName}</p>
-                    <button
-                      type="button"
-                      onClick={() => updateAppointmentStatus(apt.id, "COMPLETED")}
-                      className="w-full mt-2 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <Check className="w-3 h-3" /> Complete & Clean
-                    </button>
+                  <div className="space-y-3">
+                    {columnApts.map((apt) => (
+                      <div key={apt.id} className="p-3.5 bg-[#faf6f1] rounded-2xl border border-[#1b4332]/15 space-y-2 text-xs">
+                        <div className="flex justify-between items-start">
+                          <p className="font-bold text-[#1b4332]">{apt.patientName}</p>
+                          <span className="font-mono text-[10px] text-[#b45309] font-bold">{apt.startTime}</span>
+                        </div>
+                        <p className="text-[11px] text-gray-700">{apt.therapyName}</p>
+                        <p className="text-[10px] text-gray-500">{apt.roomName}</p>
+                        <div className="flex justify-end gap-1.5 pt-1 border-t border-black/5">
+                          {statusKey === "SCHEDULED" && (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStatus(apt.id, "IN_PROGRESS")}
+                              className="px-2 py-1 rounded bg-amber-500 text-white font-bold text-[10px] cursor-pointer"
+                            >
+                              Start
+                            </button>
+                          )}
+                          {statusKey === "IN_PROGRESS" && (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStatus(apt.id, "COMPLETED")}
+                              className="px-2 py-1 rounded bg-emerald-600 text-white font-bold text-[10px] cursor-pointer"
+                            >
+                              Complete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Completed Column */}
-            <div className="bg-emerald-50/70 p-4 rounded-3xl border-2 border-emerald-200 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-emerald-300">
-                <span className="font-serif font-black text-sm text-emerald-900">Completed Shodhana ({appointments.filter(a => a.status === "COMPLETED").length})</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-              </div>
-              <div className="space-y-3">
-                {appointments.filter(a => a.status === "COMPLETED").map(apt => (
-                  <div key={apt.id} className="bg-white p-4 rounded-2xl border-2 border-emerald-300 shadow-xs space-y-2 opacity-90">
-                    <div className="flex justify-between items-start">
-                      <span className="text-[10px] font-mono font-bold text-emerald-700">{apt.startTime}</span>
-                      <span className="text-[10px] font-bold text-emerald-800">Done</span>
-                    </div>
-                    <p className="text-xs font-bold text-[#1b4332]">{apt.patientName}</p>
-                    <p className="text-[11px] text-gray-600">{apt.therapyName}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
 
       {/* ========================================================================= */}
-      {/* BOOKING / EDITING MODAL (With Conflict Checks & Guardrails)                */}
+      {/* BOOKING / EDIT MODAL                                                      */}
       {/* ========================================================================= */}
       {showBookingModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white max-w-xl w-full p-6 sm:p-8 rounded-3xl border-2 border-[#1b4332]/20 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
-            {/* Modal Header */}
+          <div className="bg-white max-w-lg w-full p-6 sm:p-8 rounded-3xl border-2 border-[#1b4332]/20 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2 text-[#1b4332]">
-                <CalendarIcon className="w-5 h-5 text-[#d4a373]" />
+                <CalendarDays className="w-5 h-5 text-[#d4a373]" />
                 <h2 className="font-serif font-bold text-xl text-[#1b4332]">
-                  {editingAppointment ? "Reschedule Panchakarma Session" : "Book New Panchakarma Session"}
+                  {editingAppointment ? "Edit Scheduled Session" : "Book Panchakarma Therapy Session"}
                 </h2>
               </div>
               <button
@@ -1037,151 +671,184 @@ export default function SchedulePage() {
               </button>
             </div>
 
-            {/* Conflict / Error Banner */}
-            {bookingError && (
-              <div className="p-3.5 bg-red-50 border-2 border-red-200 text-red-800 rounded-2xl text-xs flex items-start gap-2.5 font-medium">
-                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                <span>{bookingError}</span>
+            {conflictError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{conflictError}</span>
               </div>
             )}
 
             <form onSubmit={handleSaveAppointment} className="space-y-4 text-xs">
-              {/* Patient Info Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Patient Full Name *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Patient Name *</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Radhika Sharma"
-                    value={formPatientName}
-                    onChange={(e) => setFormPatientName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:border-[#1b4332] focus:outline-none"
+                    value={modalPatientName}
+                    onChange={(e) => setModalPatientName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-[#1b4332]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Patient Gender (Strict Matching)</label>
+                  <label className="block font-bold text-gray-700 mb-1">Patient Gender *</label>
                   <select
-                    value={formPatientGender}
-                    onChange={(e) => handlePatientGenderChange(e.target.value as "MALE" | "FEMALE")}
-                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-[#1b4332]"
+                    value={modalPatientGender}
+                    onChange={(e) => setModalPatientGender(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-gray-800"
                   >
-                    <option value="FEMALE">Female Patient</option>
-                    <option value="MALE">Male Patient</option>
+                    <option value="MALE">Male (पुरुष)</option>
+                    <option value="FEMALE">Female (स्त्री)</option>
                   </select>
                 </div>
               </div>
 
-              {/* Therapy Preset Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Patient Age</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={110}
+                    value={modalPatientAge}
+                    onChange={(e) => setModalPatientAge(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Contact Phone</label>
+                  <input
+                    type="tel"
+                    value={modalPatientPhone}
+                    onChange={(e) => setModalPatientPhone(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-gray-800"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block font-bold text-gray-700 mb-1">Panchakarma Classical Therapy *</label>
+                <label className="block font-bold text-gray-700 mb-1">Therapy Protocol *</label>
                 <select
-                  value={formTherapy}
+                  value={modalTherapy}
                   onChange={(e) => handleTherapyChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl text-[#1b4332] font-black"
+                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-[#1b4332]"
                 >
                   {Object.keys(THERAPIES_PRESETS).map((t) => (
                     <option key={t} value={t}>
-                      {t} ({THERAPIES_PRESETS[t].duration} mins + {THERAPIES_PRESETS[t].sanitation}m T_s)
+                      {t}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Suite & Start Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Treatment Suite & Droni</label>
+                  <label className="block font-bold text-gray-700 mb-1">Assigned Suite & Droni *</label>
                   <select
-                    value={formRoom}
-                    onChange={(e) => setFormRoom(e.target.value)}
+                    value={modalRoom}
+                    onChange={(e) => setModalRoom(e.target.value)}
                     className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-gray-800"
                   >
                     {ROOMS_LIST.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.id} ({r.droni})
+                        {r.name} - {r.type}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Start Time (24h)</label>
+                  <label className="block font-bold text-gray-700 mb-1">Assigned Therapist *</label>
+                  <select
+                    value={modalTherapist}
+                    onChange={(e) => setModalTherapist(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-gray-800"
+                  >
+                    {THERAPISTS.map((th) => (
+                      <option key={th.name} value={th.name}>
+                        {th.name} ({th.gender})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Start Time</label>
+                  <select
+                    value={modalTime}
+                    onChange={(e) => setModalTime(e.target.value)}
+                    className="w-full px-2 py-2 border-2 border-gray-200 rounded-xl font-mono font-bold"
+                  >
+                    {TIME_SLOTS.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Duration (m)</label>
                   <input
-                    type="time"
-                    required
-                    value={formStartTime}
-                    onChange={(e) => setFormStartTime(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-mono font-bold text-[#1b4332]"
+                    type="number"
+                    value={modalDuration}
+                    onChange={(e) => setModalDuration(Number(e.target.value))}
+                    className="w-full px-2 py-2 border-2 border-gray-200 rounded-xl font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Sanitation (m)</label>
+                  <input
+                    type="number"
+                    value={modalSanitation}
+                    onChange={(e) => setModalSanitation(Number(e.target.value))}
+                    className="w-full px-2 py-2 border-2 border-gray-200 rounded-xl font-mono font-bold"
                   />
                 </div>
               </div>
 
-              {/* Therapist Selection (Filtered by Gender) */}
               <div>
-                <label className="block font-bold text-gray-700 mb-1">Assigned Ayurvedic Therapist</label>
-                <select
-                  value={formTherapist}
-                  onChange={(e) => {
-                    const selected = THERAPISTS.find((t) => t.name === e.target.value);
-                    if (selected) {
-                      setFormTherapist(selected.name);
-                      setFormTherapistGender(selected.gender);
-                    }
-                  }}
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl font-bold text-[#1b4332]"
-                >
-                  {THERAPISTS.map((t) => (
-                    <option key={t.name} value={t.name}>
-                      {t.name} ({t.gender}, {t.specialty})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Clinical Notes */}
-              <div>
-                <label className="block font-bold text-gray-700 mb-1">Clinical Formulation & Notes</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dhanwantharam 101 taila with Dashamoola Kwatha"
-                  value={formNotes}
-                  onChange={(e) => setFormNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl text-gray-800 font-medium"
+                <label className="block font-bold text-gray-700 mb-1">Clinical Notes / Taila Specification</label>
+                <textarea
+                  rows={2}
+                  value={modalNotes}
+                  onChange={(e) => setModalNotes(e.target.value)}
+                  placeholder="e.g. Warm Ksheerabala 101 taila, monitor BP before and after..."
+                  className="w-full px-3.5 py-2 border-2 border-gray-200 rounded-xl font-medium"
                 />
               </div>
 
-              {/* Chief Vaidya Override Card */}
-              <div className="p-3.5 bg-amber-50 rounded-2xl border-2 border-amber-200 space-y-1">
-                <label className="flex items-center gap-2.5 text-amber-900 font-bold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={overrideChiefVaidya}
-                    onChange={(e) => setOverrideChiefVaidya(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#1b4332] focus:ring-[#1b4332]"
-                  />
-                  <span>Chief Vaidya Emergency Override (Log in Audit Trail)</span>
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="override"
+                  checked={modalOverride}
+                  onChange={(e) => setModalOverride(e.target.checked)}
+                  className="rounded text-[#1b4332] focus:ring-[#1b4332]"
+                />
+                <label htmlFor="override" className="text-gray-600 text-[11px] font-medium cursor-pointer">
+                  Chief Vaidya Override (Bypass strict gender guardrails if emergency)
                 </label>
-                <p className="text-[10px] text-gray-600 pl-6">
-                  Allows bypassing gender-guardrails or overlapping buffers in emergency protocols with mandatory DISHA audit logging.
-                </p>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowBookingModal(false)}
-                  className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-700 hover:bg-gray-100 font-bold cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-100 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#1b4332] hover:bg-[#2d6a4f] text-white font-extrabold shadow-lg transition-all cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-[#1b4332] hover:bg-[#2d6a4f] text-white font-extrabold shadow-lg cursor-pointer"
                 >
-                  {editingAppointment ? "Update & Save Changes" : "Confirm & Lock Slot"}
+                  {editingAppointment ? "Save Changes" : "Confirm Appointment"}
                 </button>
               </div>
             </form>
