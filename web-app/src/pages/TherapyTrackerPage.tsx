@@ -65,14 +65,14 @@ export default function TherapyTrackerPage() {
   const [patientsData, setPatientsData] = useState<PatientTherapyRecord[]>([
     {
       patientId: "PAT-101",
-      patientName: "Aarav Sharma",
+      patientName: session?.fullName || "Aarav Sharma",
       age: 38,
       gender: "Male",
       prakriti: "Pitta-Vata (पित्त-वात)",
       vikriti: "Severe Vata Aggravation & Sciatica",
       chiefComplaint: "Lower back pain radiating to left leg, insomnia, and hyperacidity",
       allergies: ["Mustard Oil"],
-      contactPhone: "+91 98765 43210",
+      contactPhone: session?.phone || "+91 98765 43210",
       therapiesSummary: [
         {
           id: "TH-ABH",

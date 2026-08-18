@@ -70,6 +70,7 @@ const TIME_SLOTS = [
 ];
 
 export default function SchedulePage() {
+  const { session } = useAuth();
   const [searchParams] = useSearchParams();
 
   // Selected date state (defaults to today's date)
@@ -91,11 +92,11 @@ export default function SchedulePage() {
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: "APT-101",
-      patientName: "Aarav Sharma",
+      patientName: session?.fullName || "Aarav Sharma",
       patientGender: "MALE",
       patientAge: 38,
       doshaPrakriti: "VATA",
-      contactPhone: "+91 98765 43210",
+      contactPhone: session?.phone || "+91 98765 43210",
       therapyName: "Abhyanga & Swedana (Purvakarma)",
       roomName: "Suite 1 - Snehana Droni",
       droniId: "DRONI-01 (Teakwood)",

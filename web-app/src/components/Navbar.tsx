@@ -97,9 +97,7 @@ export function Navbar() {
               <div className="w-8 h-8 rounded-full bg-[#d4a373] text-[#1b4332] flex items-center justify-center text-xs font-bold shadow">
                 {session.fullName ? session.fullName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
               </div>
-              <span className="hidden md:inline text-xs font-medium text-white truncate max-w-[120px]">
-                {session.fullName}
-              </span>
+              <span className="text-xs font-bold text-white max-w-[140px] truncate">{session.fullName}</span>
               <button
                 onClick={logout}
                 title="Sign Out"

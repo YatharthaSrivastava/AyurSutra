@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import {
   Calculator,
@@ -16,8 +17,9 @@ interface MedicineItem {
 }
 
 export default function BillingPage() {
-  const [patientName, setPatientName] = useState("Aarav Sharma");
-  const [patientId, setPatientId] = useState("PAT-101");
+  const { session } = useAuth();
+  const [patientName, setPatientName] = useState(() => session?.fullName || "Aarav Sharma");
+    const [patientId, setPatientId] = useState("PAT-101");
   const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [basePackageCost, setBasePackageCost] = useState(12500); // B_c
   const [packageName, setPackageName] = useState("7-Day Classical Purification (Shodhana)");
